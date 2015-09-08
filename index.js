@@ -32,7 +32,7 @@ FTP.prototype.initialize = function (options) {
 		username: '',
 		password: ''
 	};
-	var opts = _.pick(_.extend(defaults, options), 'host', 'username', 'password', 'port');
+	var opts = _.pick(_.extend(defaults, options), 'host', 'username', 'password', 'identityFile', 'port');
 	if (!opts.host) throw new Error('You need to set a host.');
 	if (!opts.username) throw new Error('You need to set an username.');
 	if (!opts.password) throw new Error('You need to set a password.');
@@ -51,8 +51,14 @@ FTP.prototype.exec = function (cmds, callback) {
 	if (typeof cmds === 'function' && !callback)
 		callback = cmds;
 	if (!callback)
-		throw new Error('callback is missing to exec() function.')
+		throw new Error('callback is missing to exec() function.');
+
 	var cmd = '';
+
+	if (this.options.identityFile) {
+		cmd += 'set sftp:connect-program "ssh -a -x -i ' + this.options.identityFile + '";';
+	}
+
 	cmd += 'open -u "'+ escapeshell(this.options.username) + '","' + escapeshell(this.options.password) + '" "' + this.options.host + '";';
 	cmd += this.cmds.join(';');
 	this.cmds = [];
